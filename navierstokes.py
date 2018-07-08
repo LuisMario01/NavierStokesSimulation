@@ -58,6 +58,8 @@ def navier_stokes():
     
     output = open(firstPart, 'w')
     output.write(str(res)+'*'+str(incognitas))
+    output.write('\n')
+    output.write(str(force_matrix))
     output.close()
     
     output = open(secondPart, 'w')
