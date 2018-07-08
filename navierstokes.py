@@ -1,10 +1,10 @@
-import numpy as np
-import scipy as sc
 import sympy as sy
-import scipy.integrate as integrate
 
 #Symbols to be used
-x, y, z = sy.var('x y z')
+firstPart = "result.txt"
+secondPart = "result2.txt"
+
+x, y, z, t = sy.var('x y z t')
 
 fx, fy, fz = sy.var('fx fy fz')
 
@@ -49,33 +49,49 @@ def navier_stokes():
     '''Calculating each part of the locale equation'''
     res = sy.zeros(24)
     incognitas = sy.Matrix([V,P])
+    
     res[0:12, 0:12] = advection_part(D, Nti, advection, deltaN)+double_delta_part(deltaN, sy.Matrix([x1, x2, x3, x4]),sy.Matrix([y1, y2, y3, y4]),sy.Matrix([z1, z2, z3, z4]))+last_part(D, Nti, deltaN)
     res[12:24,12:24] = density_part(density,D,Nti,deltaN)
     
-    output = open("result.txt", 'w')
+    '''Analysis done with velocity only'''
+    partB = V+(t*force_part(Nti,force,D))
+    
+    output = open(firstPart, 'w')
     output.write(str(res)+'*'+str(incognitas))
+    output.close()
+    
+    output = open(secondPart, 'w')
+    output.write(str(partB))
+    output.close()
     print("Done")
+
 
 #Nti = N, tranposed and integrated
 def force_part(Nti, force, D):
+    print("force")
     res = D*Nti*force
     return res
     
 def advection_part(D, Nti, advection, deltaN):
+    print("advection")
     res = advection*D*Nti*deltaN
     return res 
 
 def density_part(density, D, Nti, deltaN):
+    print("density")
     res = (D/density)*Nti*deltaN
     return res
 
 def double_delta_part(deltaN, X, Y, Z):
+    print("doubledelta")
     '''Definition of a,b,c,d,e,f will be done in R'''
     res = (b-a)*(d-c)*(f-e)*deltaN.transpose()*deltaN
     return res
 
 def last_part(D, Nti, deltaN):
+    print("last")
     res = D*Nti*deltaN
     return res
 
 navier_stokes()
+
