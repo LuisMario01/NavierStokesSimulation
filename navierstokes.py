@@ -56,6 +56,8 @@ def navier_stokes():
     
     '''Analysis done with velocity only'''
     partB = V+(t*force_part(Nti,force,D))
+
+    force_matrix = force_part(Nti, force, D)
     
     output = open(firstPart, 'w')
     output.write(str(res)+'*'+str(incognitas))
