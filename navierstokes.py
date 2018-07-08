@@ -1,4 +1,5 @@
 import sympy as sy
+import time
 
 #Symbols to be used
 firstPart = "result.txt"
@@ -94,6 +95,9 @@ def last_part(D, Nti, deltaN):
     print("last")
     res = D*Nti*deltaN
     return res
-
+print("Ejecutando sin optimizaciones")
+start_time = time.time()
 navier_stokes()
+end_time = time.time()
+print("--- Tiempo total: %s segundos ---" % (end_time - start_time))
 
