@@ -31,8 +31,19 @@ dataGroup <- data.frame(ab = c(k_local_str, b_local_str))
 
 from_o <- c("advection", "x1", "x2", "x3", "x4", "y1", "y2", "y3", "y4", "z1", "z2", "z3", "z4", "fx", "fy", "fz", "density", "--", "+-", "a", "b", "c", "d", "e", "f")
 
+
+get_k <- (function(advection, x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4, fx, fy, fz, density, a, b, c, d, e, f)
+    matrix(eval(parse(text=paste("c", k_local_str))), nrow=24, ncol=24)
+)
+
+get_b <- (function(advection, x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4, fx, fy, fz, density, a, b, c, d, e, f)
+    matrix(eval(parse(text=paste("c", b_local_str))), nrow=24, ncol=1)
+)
+
 start.time <- Sys.time()
-for(i in 1:500){
+
+
+for(i in 1:100){
 #for(i in 1:element_node[[1]]){
     dot_1 <- coordinates[connection_table[i,2],2:4]
     dot_2 <- coordinates[connection_table[i,3],2:4]
@@ -48,19 +59,20 @@ for(i in 1:500){
     e <- max(dot_1[[3]], dot_2[[3]], dot_3[[3]], dot_4[[3]])
     f <- max(dot_1[[3]], dot_2[[3]], dot_3[[3]], dot_4[[3]])
 
-    to_o <- c(advection, dot_1[[1]], dot_2[[1]], dot_3[[1]], dot_4[[1]], dot_1[[2]], dot_2[[2]], dot_3[[2]], dot_4[[2]], dot_1[[3]], dot_2[[3]], dot_3[[3]], dot_4[[3]], force[[1]], force[[2]], force[[3]], density, "+", "-", a, b, c, d, e, f)
+    ## to_o <- c(advection, dot_1[[1]], dot_2[[1]], dot_3[[1]], dot_4[[1]], dot_1[[2]], dot_2[[2]], dot_3[[2]], dot_4[[2]], dot_1[[3]], dot_2[[3]], dot_3[[3]], dot_4[[3]], force[[1]], force[[2]], force[[3]], density, "+", "-", a, b, c, d, e, f)
 
-    replaces <- data.frame(from = from_o,
-                           to = to_o)
+    ## replaces <- data.frame(from = from_o,
+    ##                        to = to_o)
 
-    data <- FindReplace(data = dataGroup, Var = "ab", replaceData = replaces,
-                        from = "from", to = "to", exact=FALSE, vector=TRUE)
+    ## data <- FindReplace(data = dataGroup, Var = "ab", replaceData = replaces,
+    ##                     from = "from", to = "to", exact=FALSE, vector=TRUE)
 
-    k_local <- matrix(eval(parse(text=paste("c", data[[1]]))), nrow=24, ncol=24)
-    b_local <- matrix(eval(parse(text=paste("c", data[[2]]))), nrow=24, ncol=1)
-    
-    k_local [is.na(k_local)] <- 0
-    
+    ## k_local <- matrix(eval(parse(text=paste("c", data[[1]]))), nrow=24, ncol=24)
+    ## b_local <- matrix(eval(parse(text=paste("c", data[[2]]))), nrow=24, ncol=1)
+
+    k_local <- get_k(advection, dot_1[[1]], dot_2[[1]], dot_3[[1]], dot_4[[1]], dot_1[[2]], dot_2[[2]], dot_3[[2]], dot_4[[2]], dot_1[[3]], dot_2[[3]], dot_3[[3]], dot_4[[3]], force[[1]], force[[2]], force[[3]], density, a, b, c, d, e, f)
+    b_local <- get_b(advection, dot_1[[1]], dot_2[[1]], dot_3[[1]], dot_4[[1]], dot_1[[2]], dot_2[[2]], dot_3[[2]], dot_4[[2]], dot_1[[3]], dot_2[[3]], dot_3[[3]], dot_4[[3]], force[[1]], force[[2]], force[[3]], density, a, b, c, d, e, f)
+
     k_local_1 <- k_local[1:6,1:6]
 
     k_global[(1+(con_local[[1]]-1)*6):(6+(con_local[[1]]-1)*6), (1+(con_local[[1]]-1)*6):(6+(con_local[[1]]-1)*6)] =
@@ -108,11 +120,12 @@ for(i in 1:500){
     b_local_2 <- b_local[7:12,]
 
     b_global[(1+(con_local[[2]]-1)*6):(6+(con_local[[2]]-1)*6),] = b_global[(1+(con_local[[2]]-1)*6):(6+(con_local[[2]]-1)*6),] + b_local_2
-
+    
 }
 
 end.time <- Sys.time()
 time.taken <- end.time - start.time
+print("time total")
 print(time.taken)
 print(object.size(k_global))
 print(object.size(b_global))
