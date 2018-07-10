@@ -51,11 +51,13 @@ def navier_stokes():
     res = sy.zeros(24)
     incognitas = sy.Matrix([V,P])
     
-    res[0:12, 0:12] = advection_part(D, Nti, advection, deltaN)+double_delta_part(deltaN, sy.Matrix([x1, x2, x3, x4]),sy.Matrix([y1, y2, y3, y4]),sy.Matrix([z1, z2, z3, z4]))+last_part(D, Nti, deltaN)
-    res[12:24,12:24] = density_part(density,D,Nti,deltaN)
+    res[0:12, 0:12] = advection_part(D, Nti, deltaN)+double_delta_part(advection,deltaN, sy.Matrix([x1, x2, x3, x4]),sy.Matrix([y1, y2, y3, y4]),sy.Matrix([z1, z2, z3, z4]))+last_part(advection,D, Nti, deltaN)
+    res[12:24,12:24] = density_part(advection, density,D,Nti,deltaN)
+
+    res = advection*res
     
     '''Analysis done with velocity only'''
-    partB = V+(t*force_part(Nti,force,D))
+    #partB = V+(t*force_part(Nti,force,D))
 
     force_matrix = force_part(Nti, force, D)
     
@@ -65,9 +67,11 @@ def navier_stokes():
     output.write(str(force_matrix))
     output.close()
     
+    '''
     output = open(secondPart, 'w')
     output.write(str(partB))
     output.close()
+    '''
     print("Done")
 
 
@@ -77,26 +81,27 @@ def force_part(Nti, force, D):
     res = D*Nti*force
     return res
     
-def advection_part(D, Nti, advection, deltaN):
+def advection_part(D, Nti, deltaN):
     print("advection")
-    res = advection*D*Nti*deltaN
+    res = D*Nti*deltaN
     return res 
 
-def density_part(density, D, Nti, deltaN):
+def density_part(advection, density, D, Nti, deltaN):
     print("density")
-    res = (D/density)*Nti*deltaN
+    res = (1/advection)*(D/density)*Nti*deltaN
     return res
 
-def double_delta_part(deltaN, X, Y, Z):
+def double_delta_part(advection, deltaN, X, Y, Z):
     print("doubledelta")
     '''Definition of a,b,c,d,e,f will be done in R'''
-    res = (b-a)*(d-c)*(f-e)*deltaN.transpose()*deltaN
+    res = (1/advection)*(b-a)*(d-c)*(f-e)*deltaN.transpose()*deltaN
     return res
 
-def last_part(D, Nti, deltaN):
+def last_part(advection, D, Nti, deltaN):
     print("last")
-    res = D*Nti*deltaN
+    res = (1/advection)*D*Nti*deltaN
     return res
+    
 print("Ejecutando sin optimizaciones")
 start_time = time.time()
 navier_stokes()

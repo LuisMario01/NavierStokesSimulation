@@ -1,7 +1,6 @@
 #library(bigmemory)
 
 library(Matrix)
-library(DataCombine)
 
 advection <- 2
 force <- c(1, 2, 3)
@@ -27,8 +26,16 @@ k_global <- Matrix(0, nrow=element_node[[2]]*6, ncol=element_node[[2]]*6, sparse
 b_global <- Matrix(0, (nrow=element_node[[2]]*6)^2, ncol=1, sparse = TRUE)
 
 
+#dataGroup stores both k and to a have a unique reference of the information
 dataGroup <- data.frame(ab = c(k_local_str, b_local_str))
 
+<<<<<<< HEAD
+=======
+#from_o contains all of the symbols
+from_o <- c("advection", "x1", "x2", "x3", "x4", "y1", "y2", "y3", "y4", "z1", "z2", "z3", "z4", "fx", "fy", "fz", "density", "--", "+-", "a", "b", "c", "d", "e", "f")
+
+
+>>>>>>> f3bbe48b5e58a6eaa547d569913830acd0819fbb
 get_k <- (function(advection, x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4, fx, fy, fz, density, a, b, c, d, e, f)
     matrix(eval(parse(text=k_local_str)), nrow=24, ncol=24)
 )
@@ -39,7 +46,13 @@ get_b <- (function(advection, x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4, fx
 
 start.time <- Sys.time()
 
+<<<<<<< HEAD
 for(i in 1:2){
+=======
+for(i in 1:400){
+    print("//////////////////////////////////////")
+    print(i)
+>>>>>>> f3bbe48b5e58a6eaa547d569913830acd0819fbb
 #for(i in 1:element_node[[1]]){
     dot_1 <- coordinates[connection_table[i,2],2:4]
     dot_2 <- coordinates[connection_table[i,3],2:4]
@@ -58,43 +71,58 @@ for(i in 1:2){
     k_local <- get_k(advection, dot_1[[1]], dot_2[[1]], dot_3[[1]], dot_4[[1]], dot_1[[2]], dot_2[[2]], dot_3[[2]], dot_4[[2]], dot_1[[3]], dot_2[[3]], dot_3[[3]], dot_4[[3]], force[[1]], force[[2]], force[[3]], density, a, b, c, d, e, f)
     b_local <- get_b(advection, dot_1[[1]], dot_2[[1]], dot_3[[1]], dot_4[[1]], dot_1[[2]], dot_2[[2]], dot_3[[2]], dot_4[[2]], dot_1[[3]], dot_2[[3]], dot_3[[3]], dot_4[[3]], force[[1]], force[[2]], force[[3]], density, a, b, c, d, e, f)
 
+    #Replacing NaN, Inf and -Inf ocurrences with 1, 1000 and -1000 respectively 
+    k_local[is.nan(k_local)] = 1
+    k_local[is.infinite(k_local) & k_local < 0] = -1000
+    k_local[is.infinite(k_local) & k_local > 0] = 1000
+
+    # print(k_local)
+
     k_local_1 <- k_local[1:6,1:6]
 
+    ## Putting first element in global matrix
     k_global[(1+(con_local[[1]]-1)*6):(6+(con_local[[1]]-1)*6), (1+(con_local[[1]]-1)*6):(6+(con_local[[1]]-1)*6)] =
         k_global[(1+(con_local[[1]]-1)*6):(6+(con_local[[1]]-1)*6), (1+(con_local[[1]]-1)*6):(6+(con_local[[1]]-1)*6)] + k_local_1
 
     k_local_2 <- k_local[1:6,7:12]    
 
+    ## Putting second element in global matrix
     k_global[(1+(con_local[[1]]-1)*6):(6+(con_local[[1]]-1)*6), (1+(con_local[[2]]-1)*6):(6+(con_local[[2]]-1)*6)] =
         k_global[(1+(con_local[[1]]-1)*6):(6+(con_local[[1]]-1)*6), (1+(con_local[[2]]-1)*6):(6+(con_local[[2]]-1)*6)] + k_local_2
 
     k_local_3 <- k_local[7:12,1:6]
 
+    ## Putting third element in global matrix
     k_global[(1+(con_local[[2]]-1)*6):(6+(con_local[[2]]-1)*6), (1+(con_local[[1]]-1)*6):(6+(con_local[[1]]-1)*6)] =
         k_global[(1+(con_local[[2]]-1)*6):(6+(con_local[[2]]-1)*6), (1+(con_local[[1]]-1)*6):(6+(con_local[[1]]-1)*6)] + k_local_3
     
     k_local_4 <- k_local[7:12,7:12]
 
+    ## Putting fourth element in global matrix
     k_global[(1+(con_local[[2]]-1)*6):(6+(con_local[[2]]-1)*6), (1+(con_local[[2]]-1)*6):(6+(con_local[[2]]-1)*6)] =
         k_global[(1+(con_local[[2]]-1)*6):(6+(con_local[[2]]-1)*6), (1+(con_local[[2]]-1)*6):(6+(con_local[[2]]-1)*6)] + k_local_4
     
     k_local_5 <- k_local[13:18,13:18]
 
+    ## Putting fifth element in global matrix
     k_global[(1+(con_local[[3]]-1)*6):(6+(con_local[[3]]-1)*6), (1+(con_local[[3]]-1)*6):(6+(con_local[[3]]-1)*6)] =
         k_global[(1+(con_local[[3]]-1)*6):(6+(con_local[[3]]-1)*6), (1+(con_local[[3]]-1)*6):(6+(con_local[[3]]-1)*6)] + k_local_5
         
     k_local_6 <- k_local[13:18,19:24]
 
+    ## Putting sixth element in global matrix
     k_global[(1+(con_local[[3]]-1)*6):(6+(con_local[[3]]-1)*6), (1+(con_local[[4]]-1)*6):(6+(con_local[[4]]-1)*6)] =
         k_global[(1+(con_local[[3]]-1)*6):(6+(con_local[[3]]-1)*6), (1+(con_local[[4]]-1)*6):(6+(con_local[[4]]-1)*6)] + k_local_6
 
     k_local_7 <- k_local[19:24,13:18]
 
+    ## Putting seventh element in global matrix
     k_global[(1+(con_local[[4]]-1)*6):(6+(con_local[[4]]-1)*6), (1+(con_local[[3]]-1)*6):(6+(con_local[[3]]-1)*6)] =
         k_global[(1+(con_local[[4]]-1)*6):(6+(con_local[[4]]-1)*6), (1+(con_local[[3]]-1)*6):(6+(con_local[[3]]-1)*6)] + k_local_7
 
     k_local_8 <- k_local[19:24,19:24]
 
+    ## Putting eight element in global matrix
     k_global[(1+(con_local[[4]]-1)*6):(6+(con_local[[4]]-1)*6), (1+(con_local[[4]]-1)*6):(6+(con_local[[4]]-1)*6)] =
         k_global[(1+(con_local[[4]]-1)*6):(6+(con_local[[4]]-1)*6), (1+(con_local[[4]]-1)*6):(6+(con_local[[4]]-1)*6)] + k_local_8
         
@@ -107,6 +135,7 @@ for(i in 1:2){
     b_global[(1+(con_local[[2]]-1)*6):(6+(con_local[[2]]-1)*6),] = b_global[(1+(con_local[[2]]-1)*6):(6+(con_local[[2]]-1)*6),] + b_local_2
     
 }
+#End of for loop
 
 end.time <- Sys.time()
 time.taken <- end.time - start.time
