@@ -5,6 +5,8 @@ library(Matrix)
 #advection <- 2
 force <- c(1, 2, 3)
 density <- 1
+no_slip_vel <- 4
+
 
 element_node <- read.table("example2.dat", skip=grep("Number of elements and nodes:", readLines("example2.dat")), nrows=1)
 
@@ -73,7 +75,7 @@ for(i in 1:2){
     b <- max(dot_1[[1]], dot_2[[1]], dot_3[[1]], dot_4[[1]])
     c <- min(dot_1[[2]], dot_2[[2]], dot_3[[2]], dot_4[[2]])
     d <- max(dot_1[[2]], dot_2[[2]], dot_3[[2]], dot_4[[2]])
-    e <- max(dot_1[[3]], dot_2[[3]], dot_3[[3]], dot_4[[3]])
+    e <- min(dot_1[[3]], dot_2[[3]], dot_3[[3]], dot_4[[3]])
     f <- max(dot_1[[3]], dot_2[[3]], dot_3[[3]], dot_4[[3]])
 
     k_local <- get_k(advection, dot_1[[1]], dot_2[[1]], dot_3[[1]], dot_4[[1]], dot_1[[2]], dot_2[[2]], dot_3[[2]], dot_4[[2]], dot_1[[3]], dot_2[[3]], dot_3[[3]], dot_4[[3]], force[[1]], force[[2]], force[[3]], density, a, b, c, d, e, f)
@@ -155,3 +157,86 @@ print(object.size(b_global))
 
 ## applying coditions
 ## Newmann condition
+
+solution_tmp <- Matrix(0, (nrow=element_node[[2]]*6), ncol=1, sparse = TRUE)
+removed_nodes <- NULL
+## Utilities
+
+scalarVector <- function(x) {
+    x / sqrt(sum(x^2))
+}
+crossProduct <- function(ab,ac){
+  abci = ab[2] * ac[3] - ac[2] * ab[3];
+  abcj = ac[1] * ab[3] - ab[1] * ac[3];
+  abck = ab[1] * ac[2] - ac[1] * ab[2];
+  return (c(abci, abcj, abck))
+}
+perpen_vector <- function(p1, p2, p3){
+    v1 <- p3 - p1
+    v2 <- p2 - p1
+
+    ## Unit vector perpendicular to the plane
+    r_tmp <- crossProduct(v1, v2)
+    r_tmp <- array(as.numeric(unlist(r_tmp)))
+    result <- scalarVector(r_tmp)*no_slip_vel
+}
+
+
+for(i in 1:nrow(no_slip)){
+    elem <- array( unlist(connection_table[no_slip[i,1],2:5]))
+    
+    p1 <- coordinates[elem[[1]],2:4]
+    p2 <- coordinates[elem[[2]],2:4]
+    p3 <- coordinates[elem[[3]],2:4]
+    p4 <- coordinates[elem[[3]],2:4]
+
+    v1 <- perpen_vector(p1, p2, p3)
+    v2 <- perpen_vector(p1, p2, p4)
+    v3 <- perpen_vector(p2, p3, p4)
+    v4 <- perpen_vector(p1, p3, p4)
+
+    min_z <- min(v1[3], v2[3], v3[3], v4[4])
+
+    indexes <- c(1, 2, 3)
+    result <- v1
+    
+    if(min_z %in% v2){
+        indexes <- c(1, 2, 4)
+        result <- v2
+    } else if(min_z %in% v3){
+        indexes <- c(2, 3, 4)
+        result <- v3
+    } else if(min_z %in% v4){
+        indexes <- c(1, 3, 4)
+        result <- v4
+    }
+
+    result <- result*no_slip_vel
+    
+    ## Storing results in a solution vector for later
+    ## Adding new values (to be removed) to b vector on the right side
+    for(ie in indexes){
+        solution_tmp[(elem[ie]-1)*6+1]  <- solution_tmp[(elem[ie]-1)*6+1] + result[1]
+        solution_tmp[(elem[ie]-1)*6+2]  <- solution_tmp[(elem[ie]-1)*6+2] + result[2]
+        solution_tmp[(elem[ie]-1)*6+3]  <- solution_tmp[(elem[ie]-1)*6+3] + result[3]
+
+        b_global <- b_global + k_global[,(elem[ie]-1)*6+1]*(-no_slip_vel) + k_global[,(elem[ie]-1)*6+2]*(-no_slip_vel) + k_global[,(elem[ie]-1)*6+3]*(-no_slip_vel)
+    }
+
+    ## Storing index of the removed nodes 
+    removed_nodes <- cbind(removed_nodes, c( (elem[indexes[1]]-1)*6+1, (elem[indexes[1]]-1)*6+2, (elem[indexes[1]]-1)*6+3,
+    (elem[indexes[2]]-1)*6+1, (elem[indexes[2]]-1)*6+2, (elem[indexes[2]]-1)*6+3,
+    (elem[indexes[3]]-1)*6+1, (elem[indexes[3]]-1)*6+2, (elem[indexes[3]]-1)*6+3))
+    
+}
+
+## Removing Columns and Rows in the Global matrix
+
+removed_nodes <- as.numeric(unique(array(unlist(removed_nodes))))
+
+print(dim(k_global))
+
+k_global <- k_global[-removed_nodes, -removed_nodes]
+b_global <- b_global[-removed_nodes,]
+
+print(dim(k_global))
