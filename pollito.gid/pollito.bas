@@ -34,12 +34,12 @@ Material      Surface density *Units(surface_density)
 
 .................................................................
 
-*Set Cond No_slip *nodes
-No slip 1:
+*Set Cond No_slip *elems
+No slip:
 *CondNumEntities(int)
-Node
-*loop nodes *OnlyInCond
-*NodesNum 
+Elems
+*loop elems *OnlyInCond
+*ElemsNum 
 *end nodes
 .................................................................
 

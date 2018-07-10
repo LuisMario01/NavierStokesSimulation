@@ -1,6 +1,6 @@
 CONDITION: No_slip
 CONDTYPE: over surfaces
-CONDMESHTYPE: over nodes
+CONDMESHTYPE: over face elements
 END CONDITION
 
 CONDITION: Input_velocity

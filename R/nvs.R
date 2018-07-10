@@ -39,7 +39,7 @@ get_b <- (function(advection, x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4, fx
 
 start.time <- Sys.time()
 
-for(i in 1:10){
+for(i in 1:2){
 #for(i in 1:element_node[[1]]){
     dot_1 <- coordinates[connection_table[i,2],2:4]
     dot_2 <- coordinates[connection_table[i,3],2:4]
@@ -115,10 +115,17 @@ print(time.taken)
 print(object.size(k_global))
 print(object.size(b_global))
 
-no_slip_count <- read.table("example2.dat", skip=grep("No slip 1:", readLines("example2.dat")), nrows=1)
+no_slip_count <- read.table("example2.dat", skip=grep("No slip:", readLines("example2.dat")), nrows=1)
 in_velocity_count <- read.table("example2.dat", skip=grep("Input velocity:", readLines("example2.dat")), nrows=1)
 output_velocity_count <- read.table("example2.dat", skip=grep("Output Velocity:", readLines("example2.dat")), nrows=1)
 
-no_slip <- read.table("example2.dat", skip=(grep("No slip 1:", readLines("example2.dat"))+2), nrows=no_slip_count[[1]])
+## no_slip: list of all the elements that have a no slip condition
+no_slip <- read.table("example2.dat", skip=(grep("No slip:", readLines("example2.dat"))+2), nrows=no_slip_count[[1]])
+
+## output_velocity: list of all the nodes that have the output velocity condition
 output_velocity <- read.table("example2.dat", skip=(grep("Output Velocity:", readLines("example2.dat"))+2), nrows=output_velocity_count[[1]])
+
+## input_velocity: list of all the nodes that have the input velocity condition
 input_velocity <- read.table("example2.dat", skip=(grep("Input velocity:", readLines("example2.dat"))+2), nrows=in_velocity_count[[1]])
+
+
