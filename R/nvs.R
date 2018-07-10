@@ -29,13 +29,6 @@ b_global <- Matrix(0, (nrow=element_node[[2]]*6)^2, ncol=1, sparse = TRUE)
 #dataGroup stores both k and to a have a unique reference of the information
 dataGroup <- data.frame(ab = c(k_local_str, b_local_str))
 
-<<<<<<< HEAD
-=======
-#from_o contains all of the symbols
-from_o <- c("advection", "x1", "x2", "x3", "x4", "y1", "y2", "y3", "y4", "z1", "z2", "z3", "z4", "fx", "fy", "fz", "density", "--", "+-", "a", "b", "c", "d", "e", "f")
-
-
->>>>>>> f3bbe48b5e58a6eaa547d569913830acd0819fbb
 get_k <- (function(advection, x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4, fx, fy, fz, density, a, b, c, d, e, f)
     matrix(eval(parse(text=k_local_str)), nrow=24, ncol=24)
 )
@@ -46,14 +39,12 @@ get_b <- (function(advection, x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4, fx
 
 start.time <- Sys.time()
 
-<<<<<<< HEAD
 for(i in 1:2){
-=======
-for(i in 1:400){
+##for(i in 1:element_node[[1]]){
+
     print("//////////////////////////////////////")
     print(i)
->>>>>>> f3bbe48b5e58a6eaa547d569913830acd0819fbb
-#for(i in 1:element_node[[1]]){
+
     dot_1 <- coordinates[connection_table[i,2],2:4]
     dot_2 <- coordinates[connection_table[i,3],2:4]
     dot_3 <- coordinates[connection_table[i,4],2:4]
@@ -156,5 +147,3 @@ output_velocity <- read.table("example2.dat", skip=(grep("Output Velocity:", rea
 
 ## input_velocity: list of all the nodes that have the input velocity condition
 input_velocity <- read.table("example2.dat", skip=(grep("Input velocity:", readLines("example2.dat"))+2), nrows=in_velocity_count[[1]])
-
-
