@@ -20,30 +20,26 @@ k_local_str <- lines[[1]]
 v_local_str <- lines[[2]]
 b_local_str <- lines[[3]]
 
-#k_global <- big.matrix(nrow=element_node[[1]]*6, ncol=element_node[[1]]*6, type="short", backingfile="k_global")
-#b_global <- big.matrix(nrow=(element_node[[1]]*6)^2, ncol = 1, type="short", backingfile="b_global")
+#k_global <- big.matrix(nrow=element_node[[2]]*6, ncol=element_node[[2]]*6, type="short", backingfile="k_global")
+#b_global <- big.matrix(nrow=(element_node[[2]]*6)^2, ncol = 1, type="short", backingfile="b_global")
 
-k_global <- Matrix(0, nrow=element_node[[1]]*6, ncol=element_node[[1]]*6, sparse = TRUE)
-b_global <- Matrix(0, (nrow=element_node[[1]]*6)^2, ncol=1, sparse = TRUE)
+k_global <- Matrix(0, nrow=element_node[[2]]*6, ncol=element_node[[2]]*6, sparse = TRUE)
+b_global <- Matrix(0, (nrow=element_node[[2]]*6)^2, ncol=1, sparse = TRUE)
 
 
 dataGroup <- data.frame(ab = c(k_local_str, b_local_str))
 
-from_o <- c("advection", "x1", "x2", "x3", "x4", "y1", "y2", "y3", "y4", "z1", "z2", "z3", "z4", "fx", "fy", "fz", "density", "--", "+-", "a", "b", "c", "d", "e", "f")
-
-
 get_k <- (function(advection, x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4, fx, fy, fz, density, a, b, c, d, e, f)
-    matrix(eval(parse(text=paste("c", k_local_str))), nrow=24, ncol=24)
+    matrix(eval(parse(text=k_local_str)), nrow=24, ncol=24)
 )
 
 get_b <- (function(advection, x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4, fx, fy, fz, density, a, b, c, d, e, f)
-    matrix(eval(parse(text=paste("c", b_local_str))), nrow=24, ncol=1)
+    matrix(eval(parse(text=b_local_str)), nrow=24, ncol=1)
 )
 
 start.time <- Sys.time()
 
-
-for(i in 1:100){
+for(i in 1:10){
 #for(i in 1:element_node[[1]]){
     dot_1 <- coordinates[connection_table[i,2],2:4]
     dot_2 <- coordinates[connection_table[i,3],2:4]
@@ -58,17 +54,6 @@ for(i in 1:100){
     d <- max(dot_1[[2]], dot_2[[2]], dot_3[[2]], dot_4[[2]])
     e <- max(dot_1[[3]], dot_2[[3]], dot_3[[3]], dot_4[[3]])
     f <- max(dot_1[[3]], dot_2[[3]], dot_3[[3]], dot_4[[3]])
-
-    ## to_o <- c(advection, dot_1[[1]], dot_2[[1]], dot_3[[1]], dot_4[[1]], dot_1[[2]], dot_2[[2]], dot_3[[2]], dot_4[[2]], dot_1[[3]], dot_2[[3]], dot_3[[3]], dot_4[[3]], force[[1]], force[[2]], force[[3]], density, "+", "-", a, b, c, d, e, f)
-
-    ## replaces <- data.frame(from = from_o,
-    ##                        to = to_o)
-
-    ## data <- FindReplace(data = dataGroup, Var = "ab", replaceData = replaces,
-    ##                     from = "from", to = "to", exact=FALSE, vector=TRUE)
-
-    ## k_local <- matrix(eval(parse(text=paste("c", data[[1]]))), nrow=24, ncol=24)
-    ## b_local <- matrix(eval(parse(text=paste("c", data[[2]]))), nrow=24, ncol=1)
 
     k_local <- get_k(advection, dot_1[[1]], dot_2[[1]], dot_3[[1]], dot_4[[1]], dot_1[[2]], dot_2[[2]], dot_3[[2]], dot_4[[2]], dot_1[[3]], dot_2[[3]], dot_3[[3]], dot_4[[3]], force[[1]], force[[2]], force[[3]], density, a, b, c, d, e, f)
     b_local <- get_b(advection, dot_1[[1]], dot_2[[1]], dot_3[[1]], dot_4[[1]], dot_1[[2]], dot_2[[2]], dot_3[[2]], dot_4[[2]], dot_1[[3]], dot_2[[3]], dot_3[[3]], dot_4[[3]], force[[1]], force[[2]], force[[3]], density, a, b, c, d, e, f)
@@ -129,3 +114,11 @@ print("time total")
 print(time.taken)
 print(object.size(k_global))
 print(object.size(b_global))
+
+no_slip_count <- read.table("example2.dat", skip=grep("No slip 1:", readLines("example2.dat")), nrows=1)
+in_velocity_count <- read.table("example2.dat", skip=grep("Input velocity:", readLines("example2.dat")), nrows=1)
+output_velocity_count <- read.table("example2.dat", skip=grep("Output Velocity:", readLines("example2.dat")), nrows=1)
+
+no_slip <- read.table("example2.dat", skip=(grep("No slip 1:", readLines("example2.dat"))+2), nrows=no_slip_count[[1]])
+output_velocity <- read.table("example2.dat", skip=(grep("Output Velocity:", readLines("example2.dat"))+2), nrows=output_velocity_count[[1]])
+input_velocity <- read.table("example2.dat", skip=(grep("Input velocity:", readLines("example2.dat"))+2), nrows=in_velocity_count[[1]])

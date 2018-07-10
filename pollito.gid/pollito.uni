@@ -5,17 +5,20 @@ HIDDEN: mass
 BEGIN TABLE
 length   : m , 100 cm, 1e3 mm, 39.37007874 in, 0.3048 ft, 3.280839895 yd, 0.0006213689 mi
 mass     : kg , 1e3 g , 35.273990723 oz, 2.2046244202 lb
-surface_density: kg/m^2, 1e-4 kg/cm^2, 0.02275737 oz/in^2, 0.0014223 lb/in^2                                      
+surface_density: kg/m^2, 1e-4 kg/cm^2, 0.02275737 oz/in^2, 0.0014223 lb/in^2
+velocity : m/s , 3.6 km/h , 3.28 ft/s, 2.23 mph
 END
 
 BEGIN SYSTEM(international)
 length : m
 mass : kg
 surface_density: kg/m^2
+velocity : m/s
 END
 
 BEGIN SYSTEM(imperial)
 length : in
 mass : oz
 surface_density: oz/in^2
+velocity: ft/s
 END

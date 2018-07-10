@@ -1,6 +1,18 @@
-CONDITION: Point-Weight
-CONDTYPE: over points
+CONDITION: No_slip
+CONDTYPE: over surfaces
 CONDMESHTYPE: over nodes
-QUESTION: Weight#UNITS#
-VALUE: 0 kg
+END CONDITION
+
+CONDITION: Input_velocity
+CONDTYPE: over surfaces
+CONDMESHTYPE: over nodes
+QUESTION: velocity#UNITS#
+VALUE: 10 m/s
+END CONDITION
+
+CONDITION: Output_velocity
+CONDTYPE: over surfaces
+CONDMESHTYPE: over nodes
+QUESTION: velocity#UNITS#
+VALUE: 10 m/s
 END CONDITION

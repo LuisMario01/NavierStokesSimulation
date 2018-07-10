@@ -34,10 +34,28 @@ Material      Surface density *Units(surface_density)
 
 .................................................................
 
-*Set Cond Point-Weight *nodes
-Concentrated Weights:
+*Set Cond No_slip *nodes
+No slip 1:
 *CondNumEntities(int)
-Node   Mass *Units(mass)
+Node
 *loop nodes *OnlyInCond
-*NodesNum     *Cond(Weight)
+*NodesNum 
+*end nodes
+.................................................................
+
+*Set Cond Input_velocity *nodes
+Input velocity:
+*CondNumEntities(int)
+Node   Velocity *Units(velocity)
+*loop nodes *OnlyInCond
+*NodesNum     *Cond(Velocity)
+*end nodes
+.................................................................
+
+*Set Cond Output_velocity *nodes
+Output Velocity:
+*CondNumEntities(int)
+Node   Mass *Units(velocity)
+*loop nodes *OnlyInCond
+*NodesNum     *Cond(Velocity)
 *end nodes
