@@ -1,6 +1,16 @@
-#library(bigmemory)
-
+#!/usr/bin/env Rscript
 library(Matrix)
+library(here)
+
+args <- commandArgs(trailingOnly=TRUE)
+root_name <- args[1]
+
+
+dat_file <- paste0(root_name,".dat")
+post_file <- paste0(root_name,".post.res")
+
+## Changes the following line for the path to the root R folder
+script.dir <- "/home/jonathan/code/Kratos-a/NavierStokesSimulation/R"
 
 force <- c(1, 2, 3)
 density <- 1
@@ -9,17 +19,17 @@ no_slip_vel <- 4
 # TODO: READ TIME INTERVAL
 # time interval 5 seconds, step 1 second.
 # these have to be read from input file.
-time_interval <- 5
+time_interval <- 1
 time_step <- 0.5
 
 
-element_node <- read.table("example2.dat", skip=grep("Number of elements and nodes:", readLines("example2.dat")), nrows=1)
+element_node <- read.table(dat_file, skip=grep("Number of elements and nodes:", readLines(dat_file)), nrows=1)
 
-coordinates <- read.table("example2.dat", skip=grep("Coordinates:", readLines("example2.dat")), nrows=element_node[1, 2])
+coordinates <- read.table(dat_file, skip=grep("Coordinates:", readLines(dat_file)), nrows=element_node[1, 2])
 
-connection_table <- read.table("example2.dat", skip=grep("Connectivities:", readLines("example2.dat")), nrows=element_node[1, 1])
+connection_table <- read.table(dat_file, skip=grep("Connectivities:", readLines(dat_file)), nrows=element_node[1, 1])
 
-con <- file("parse.txt", open='r')
+con <- file(paste0(script.dir,"/parse.txt"), open='r')
 lines <- readLines(con)
 
 k_local_str <- lines[[1]]
@@ -27,18 +37,18 @@ v_local_str <- lines[[2]]
 b_local_str <- lines[[3]]
 
 ## Reading conditions
-no_slip_count <- read.table("example2.dat", skip=grep("No slip:", readLines("example2.dat")), nrows=1)
-in_velocity_count <- read.table("example2.dat", skip=grep("Input velocity:", readLines("example2.dat")), nrows=1)
-output_velocity_count <- read.table("example2.dat", skip=grep("Output Velocity:", readLines("example2.dat")), nrows=1)
+no_slip_count <- read.table(dat_file, skip=grep("No slip:", readLines(dat_file)), nrows=1)
+in_velocity_count <- read.table(dat_file, skip=grep("Input velocity:", readLines(dat_file)), nrows=1)
+output_velocity_count <- read.table(dat_file, skip=grep("Output Velocity:", readLines(dat_file)), nrows=1)
 
 ## no_slip: list of all the elements that have a no slip condition
-no_slip <- read.table("example2.dat", skip=(grep("No slip:", readLines("example2.dat"))+2), nrows=no_slip_count[[1]])
+no_slip <- read.table(dat_file, skip=(grep("No slip:", readLines(dat_file))+2), nrows=no_slip_count[[1]])
 
 ## output_velocity: list of all the nodes that have the output velocity condition
-output_velocity <- read.table("example2.dat", skip=(grep("Output Velocity:", readLines("example2.dat"))+2), nrows=output_velocity_count[[1]])
+output_velocity <- read.table(dat_file, skip=(grep("Output Velocity:", readLines(dat_file))+2), nrows=output_velocity_count[[1]])
 
 ## input_velocity: list of all the nodes that have the input velocity condition
-input_velocity <- read.table("example2.dat", skip=(grep("Input velocity:", readLines("example2.dat"))+2), nrows=in_velocity_count[[1]])
+input_velocity <- read.table(dat_file, skip=(grep("Input velocity:", readLines(dat_file))+2), nrows=in_velocity_count[[1]])
 
 ## advection takes the input velocity in the first iteration of time
 advection <- input_velocity[1,2]
@@ -46,8 +56,8 @@ advection <- input_velocity[1,2]
 #k_global <- big.matrix(nrow=element_node[[2]]*6, ncol=element_node[[2]]*6, type="short", backingfile="k_global")
 #b_global <- big.matrix(nrow=(element_node[[2]]*6)^2, ncol = 1, type="short", backingfile="b_global")
 
-k_global <- Matrix(0, nrow=element_node[[2]]*6, ncol=element_node[[2]]*6, sparse = TRUE)
-b_global <- Matrix(0, nrow=element_node[[2]]*6, ncol=1, sparse = TRUE)
+k_global <- matrix(sample(c(1, 0.01, 0.02), (element_node[[2]]*6)^2, replace=TRUE), nrow=element_node[[2]]*6, ncol=element_node[[2]]*6)
+b_global <- matrix(sample(c(1, 0.01, 0.02), element_node[[2]]*6, replace=TRUE), nrow=element_node[[2]]*6, ncol=1)
 
 #dataGroup stores both k and to a have a unique reference of the information
 dataGroup <- data.frame(ab = c(k_local_str, b_local_str))
@@ -62,7 +72,7 @@ get_b <- (function(advection, x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4, fx
 
 start.time <- Sys.time()
 
-for(i in 1:32){
+for(i in 1:10){
 ##for(i in 1:element_node[[1]]){
 
     dot_1 <- coordinates[connection_table[i,2],2:4]
@@ -193,18 +203,18 @@ for(i in 1:nrow(no_slip)){
     v3 <- perpen_vector(p2, p3, p4)
     v4 <- perpen_vector(p1, p3, p4)
 
-    min_z <- min(v1[3], v2[3], v3[3], v4[4])
+    min_z <- which.min(abs(c(v1[3], v2[3], v3[3], v4[4])))
 
     indexes <- c(1, 2, 3)
     result <- v1
     
-    if(min_z %in% v2){
+    if(min_z == 2){
         indexes <- c(1, 2, 4)
         result <- v2
-    } else if(min_z %in% v3){
+    } else if(min_z == 3){
         indexes <- c(2, 3, 4)
         result <- v3
-    } else if(min_z %in% v4){
+    } else if(min_z == 4){
         indexes <- c(1, 3, 4)
         result <- v4
     }
@@ -230,18 +240,10 @@ for(i in 1:nrow(no_slip)){
 
 ## Removing Columns and Rows in the Global matrix
 
-removed_nodes <- as.numeric(unique(array(unlist(removed_nodes))))
+removed_nodes <- sort(as.numeric(unique(array(unlist(removed_nodes)))))
 
 k_global <- k_global[-removed_nodes, -removed_nodes]
 b_global <- b_global[-removed_nodes,]
-
-for(i in 1:nrow(k_global)){
-    for(j in 1:ncol(k_global)){
-        if(k_global[i,j]==0){
-            k_global[i,j] <- runif(1,0.01,0.02)
-        }
-    }
-}
 
 s_global <- Matrix(0, nrow=length(b_global), ncol=, sparse = TRUE)
 identity <- Diagonal(nrow(k_global))
@@ -260,12 +262,34 @@ while(i <= length(s_global)){
 old_advection <- advection
 new_advection <- advection
 
+
+fileConn<-post_file
+lines <- c("GiD Post Results File 1.1 \n",
+"# encoding utf-8\n",
+"\n",
+'GaussPoints "tri1_element_gp" ElemType Triangle\n',
+"Number Of Gauss Points: 1\n",
+"Natural Coordinates: Internal\n",
+"End gausspoints\n",
+"\n",
+'GaussPoints "tet4_element_gp" ElemType Tetrahedra\n',
+"Number Of Gauss Points: 4\n",
+"Natural Coordinates: Given\n",
+"    0.58541    0.138197    0.138197\n",
+"    0.138197    0.58541    0.138197\n",
+"    0.138197    0.138197    0.58541\n",
+"    0.138197    0.138197    0.138197\n",
+"End gausspoints\n",
+"\n"
+)
+write(lines, file=fileConn, ncolumns=length(lines), append=FALSE)
+
+
 ## Time calculations
 if(time_step>0 && time_interval%%time_step==0){
 
     for (i in 1:(time_interval/time_step)){
         acum <- 0
-
         ## Calculating new value of advection
         j <- 1
         while(j <= length(s_global)){
@@ -290,14 +314,61 @@ if(time_step>0 && time_interval%%time_step==0){
         print("/////////////////")
         print(i)
         print("::::")
-        for(k in 1:length(s_global)){
-            print(s_global[k,])
+
+        ## TODO s_global here contains what should be written in file
+        di <- 1
+        si <- 1
+        for(o in 1:nrow(solution_tmp)){
+            if(di< length(removed_nodes) & o == removed_nodes[di]){
+                di <- di+3
+                o  <- o+3
+            }else{
+                solution_tmp[o] <- s_global[si]
+                si <- si+1
+            }
         }
 
-        #TODO s_global here contains what should be written in file
+        n_sol_tmp <- matrix(array(unlist(solution_tmp)), ncol=3)
+
+        even_r <- seq(2, nrow(n_sol_tmp),2)
+        odd_r <- seq(1, nrow(n_sol_tmp),2)
+
+        v_sol <- n_sol_tmp[odd_r,]
+        v_sol[is.na(v_sol)]  <- 0
+        p_sol <- n_sol_tmp[even_r,]
+        p_sol[is.na(p_sol)] <- 0
+        
+        lines <- c(
+            paste('Result "VELOCITY" "Kratos" ', i*time_step,' Vector OnNodes\n'),
+            'ComponentNames "X-VELOCITY", "Y-VELOCITY", "Z-VELOCITY", "|VELOCITY|"\n',
+            'Values'            
+        )
+        write(lines, file=fileConn, ncolumns=length(lines), append=TRUE)
+
+        for(o in 1:nrow(v_sol)){
+            row <- v_sol[o,]
+            lines <- paste(c("\t", o, row, norm(row, type="2")), collapse=" ")
+            write(lines, file=fileConn, ncolumns=length(lines), append=TRUE)
+        }
+
+        lines <- c("End values\n", "\n")
+        write(lines, file=fileConn, ncolumns=length(lines), append=TRUE)
+
+        lines <- c(
+            paste('Result "PRESSURE" "Kratos" ', i*time_step,' Scalar OnNodes\n'),
+            'ComponentNames "PRESSURE"\n',
+            'Values'            
+        )
+        write(lines, file=fileConn, ncolumns=length(lines), append=TRUE)
+        for(o in 1:nrow(p_sol)){
+            row <- sum(p_sol[o,]/3)
+            lines <- paste(c(o, row), collapse=" ")
+            write(lines, file=fileConn, ncolumns=length(lines), append=TRUE)
+        }
+        lines <- c("End values\n")
+        write(lines, file=fileConn, ncolumns=length(lines), append=TRUE)
     }
 }
-
 
 end.time <- Sys.time()
 time.taken <- end.time - start.time

@@ -1,0 +1,18 @@
+CONDITION: No_slip
+CONDTYPE: over surfaces
+CONDMESHTYPE: over face elements
+END CONDITION
+
+CONDITION: Input_velocity
+CONDTYPE: over surfaces
+CONDMESHTYPE: over nodes
+QUESTION: velocity#UNITS#
+VALUE: 10 m/s
+END CONDITION
+
+CONDITION: Output_velocity
+CONDTYPE: over surfaces
+CONDMESHTYPE: over nodes
+QUESTION: velocity#UNITS#
+VALUE: 10 m/s
+END CONDITION
