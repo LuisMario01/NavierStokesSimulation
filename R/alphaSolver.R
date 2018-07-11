@@ -19,7 +19,7 @@ no_slip_vel <- 4
 # TODO: READ TIME INTERVAL
 # time interval 5 seconds, step 1 second.
 # these have to be read from input file.
-time_interval <- 1
+time_interval <- 5
 time_step <- 0.5
 
 
@@ -72,9 +72,8 @@ get_b <- (function(advection, x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4, fx
 
 start.time <- Sys.time()
 
-for(i in 1:10){
-##for(i in 1:element_node[[1]]){
-
+##for(i in 1:10){
+for(i in 1:element_node[[1]]){
     dot_1 <- coordinates[connection_table[i,2],2:4]
     dot_2 <- coordinates[connection_table[i,3],2:4]
     dot_3 <- coordinates[connection_table[i,4],2:4]
@@ -168,8 +167,8 @@ print(object.size(b_global))
 
 solution_tmp <- Matrix(0, (nrow=element_node[[2]]*6), ncol=1, sparse = TRUE)
 removed_nodes <- NULL
-## Utilities
 
+## Utilities
 scalarVector <- function(x) {
     x / sqrt(sum(x^2))
 }
@@ -188,7 +187,6 @@ perpen_vector <- function(p1, p2, p3){
     r_tmp <- array(as.numeric(unlist(r_tmp)))
     result <- scalarVector(r_tmp)*no_slip_vel
 }
-
 
 for(i in 1:nrow(no_slip)){
     elem <- array( unlist(connection_table[no_slip[i,1],2:5]))
@@ -220,7 +218,7 @@ for(i in 1:nrow(no_slip)){
     }
 
     result <- result*no_slip_vel
-    
+
     ## Storing results in a solution vector for later
     ## Adding new values (to be removed) to b vector on the right side
     for(ie in indexes){
@@ -235,7 +233,6 @@ for(i in 1:nrow(no_slip)){
     removed_nodes <- cbind(removed_nodes, c( (elem[indexes[1]]-1)*6+1, (elem[indexes[1]]-1)*6+2, (elem[indexes[1]]-1)*6+3,
     (elem[indexes[2]]-1)*6+1, (elem[indexes[2]]-1)*6+2, (elem[indexes[2]]-1)*6+3,
     (elem[indexes[3]]-1)*6+1, (elem[indexes[3]]-1)*6+2, (elem[indexes[3]]-1)*6+3))
-    
 }
 
 ## Removing Columns and Rows in the Global matrix
