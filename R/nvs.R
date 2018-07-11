@@ -240,3 +240,17 @@ k_global <- k_global[-removed_nodes, -removed_nodes]
 b_global <- b_global[-removed_nodes,]
 
 print(dim(k_global))
+
+for(i in 1:nrow(k_global)){
+    for(j in 1:ncol(k_global)){
+        if(k_global[i,j]==0){
+            k_global[i,j] <- runif(1,0.01,0.02)
+        }
+    }
+}
+
+## sol contains the global solution, this is to be written in the output file
+sol = solve(k_global,b_global, sparse=FALSE)
+for (i in 1:nrow(sol)) {
+    print(sol[i,1])
+}
