@@ -2,10 +2,15 @@
 
 library(Matrix)
 
-#advection <- 2
 force <- c(1, 2, 3)
 density <- 1
 no_slip_vel <- 4
+
+# TODO
+# time interval 5 seconds, step 1 second.
+# these have to be read from input file.
+time_interval <- 5
+time_step <- 0.5
 
 
 element_node <- read.table("example2.dat", skip=grep("Number of elements and nodes:", readLines("example2.dat")), nrows=1)
@@ -42,11 +47,7 @@ advection <- input_velocity[1,2]
 #b_global <- big.matrix(nrow=(element_node[[2]]*6)^2, ncol = 1, type="short", backingfile="b_global")
 
 k_global <- Matrix(0, nrow=element_node[[2]]*6, ncol=element_node[[2]]*6, sparse = TRUE)
-b_global <- Matrix(0, (nrow=element_node[[2]]*6), ncol=1, sparse = TRUE)
-newmann_matrix <- Matrix(0, (nrow=element_node[[2]]*6), ncol=1, sparse = TRUE)
-
-print(nrow(b_global))
-
+b_global <- Matrix(0, nrow=element_node[[2]]*6, ncol=1, sparse = TRUE)
 
 #dataGroup stores both k and to a have a unique reference of the information
 dataGroup <- data.frame(ab = c(k_local_str, b_local_str))
@@ -61,7 +62,7 @@ get_b <- (function(advection, x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4, fx
 
 start.time <- Sys.time()
 
-for(i in 1:2){
+for(i in 1:32){
 ##for(i in 1:element_node[[1]]){
 
     dot_1 <- coordinates[connection_table[i,2],2:4]
@@ -148,10 +149,7 @@ for(i in 1:2){
 }
 #End of for loop
 
-end.time <- Sys.time()
-time.taken <- end.time - start.time
-print("time total")
-print(time.taken)
+
 print(object.size(k_global))
 print(object.size(b_global))
 
@@ -234,12 +232,8 @@ for(i in 1:nrow(no_slip)){
 
 removed_nodes <- as.numeric(unique(array(unlist(removed_nodes))))
 
-print(dim(k_global))
-
 k_global <- k_global[-removed_nodes, -removed_nodes]
 b_global <- b_global[-removed_nodes,]
-
-print(dim(k_global))
 
 for(i in 1:nrow(k_global)){
     for(j in 1:ncol(k_global)){
@@ -249,9 +243,63 @@ for(i in 1:nrow(k_global)){
     }
 }
 
-## sol contains the global solution, this is to be written in the output file
-sol = solve(k_global,b_global, sparse=FALSE)
-for (i in 1:nrow(sol)) {
-    print(sol[i,1])
+s_global <- Matrix(0, nrow=length(b_global), ncol=, sparse = TRUE)
+identity <- Diagonal(nrow(k_global))
+
+s_global <- data.matrix(s_global)
+## Filling solution with seed values. Velocities will be equal to 10X-Y-Z, pressure 0
+i <- 1
+
+while(i <= length(s_global)){
+    s_global[i,] <- 40
+    s_global[i+1,] <- 40
+    s_global[i+2,] <- 40
+    i=i+6
 }
 
+old_advection <- advection
+new_advection <- advection
+
+## Time calculations
+if(time_step>0 && time_interval%%time_step==0){
+
+    for (i in 1:(time_interval/time_step)){
+        acum <- 0
+
+        ## Calculating new value of advection
+        j <- 1
+        while(j <= length(s_global)){
+            acum <- s_global[j,] + s_global[j+1,] + s_global[j+2,] + acum
+            j=j+6
+        }
+
+        ## New advection  is the mean of all the velocities in vector s_global
+        new_advection <- acum/(length(s_global)/3)
+        factor <- new_advection/old_advection
+
+        k_global <- factor*k_global
+        b_global <- factor*b_global
+
+
+        left <- solve(identity+(time_step*k_global))
+        right <- s_global + (time_step*b_global)
+        
+        ## Calculating new value of s
+        s_global = left%*%right
+
+        print("/////////////////")
+        print(i)
+        print("::::")
+        for(k in 1:length(s_global)){
+            print(s_global[k,])
+        }
+
+        #TODO s_global here contains what should be written in file
+    }
+}
+
+
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print("time total")
+print(time.taken)
