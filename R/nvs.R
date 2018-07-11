@@ -6,7 +6,7 @@ force <- c(1, 2, 3)
 density <- 1
 no_slip_vel <- 4
 
-# TODO
+# TODO: READ TIME INTERVAL
 # time interval 5 seconds, step 1 second.
 # these have to be read from input file.
 time_interval <- 5
@@ -251,9 +251,9 @@ s_global <- data.matrix(s_global)
 i <- 1
 
 while(i <= length(s_global)){
-    s_global[i,] <- 40
-    s_global[i+1,] <- 40
-    s_global[i+2,] <- 40
+    s_global[i,] <- input_velocity[1,2]
+    s_global[i+1,] <- input_velocity[1,2]
+    s_global[i+2,] <- input_velocity[1,2]
     i=i+6
 }
 
