@@ -254,3 +254,4 @@ sol = solve(k_global,b_global, sparse=FALSE)
 for (i in 1:nrow(sol)) {
     print(sol[i,1])
 }
+
